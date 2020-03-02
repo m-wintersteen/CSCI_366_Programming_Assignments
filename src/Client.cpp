@@ -24,10 +24,29 @@ Client::~Client() {
 void Client::initialize(unsigned int player, unsigned int board_size){
     this->player = player;
     this->board_size = board_size;
+    vector<vector<int> > board(board_size, vector<int>(board_size));
+
+    ofstream actionBoardFile;
+
+    actionBoardFile.open("player_"+std::to_string(player)+".action_board.json");
+    {
+        cereal::JSONOutputArchive oarc(actionBoardFile);
+        oarc(CEREAL_NVP(board));
+    }
+    actionBoardFile.close();
 }
 
 
 void Client::fire(unsigned int x, unsigned int y) {
+    ofstream shotFile;
+
+    shotFile.open("player_"+std::to_string(player)+".shot.json");
+    {
+        cereal::JSONOutputArchive oarc(shotFile);
+        oarc(CEREAL_NVP(x));
+        oarc(CEREAL_NVP(y));
+    }
+    shotFile.close();
 }
 
 

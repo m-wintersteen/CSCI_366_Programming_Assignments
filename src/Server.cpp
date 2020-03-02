@@ -58,7 +58,7 @@ void Server::initialize(unsigned int board_size,
     while ( getline (infilep1,line1) &&  getline (infilep2,line2))
     {
         for(int i = 0; i < board_size; i++){
-            p1_board[line][i] = (line1.at(i));
+            p1_board[line][i] = line1.at(i);
         }
         // Validate board size
         if ( line1.length() != board_size ) {
@@ -66,7 +66,7 @@ void Server::initialize(unsigned int board_size,
         }
 
         for(int i = 0; i < board_size; i++){
-            p2_board[line][i] = (line2.at(i));
+            p2_board[line][i] = line2.at(i);
         }
 
         if ( line2.length() != board_size ) {
@@ -97,7 +97,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
     }
 
     if ( player == 1 ){
-        if ( p2_board[x][y] != '_' ) {
+        if ( p2_board[y][x] != '_' ) {
             return HIT;
         }
         else {
@@ -106,7 +106,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
 
     }
     else {
-        if ( p1_board[x][y] != '_') {
+        if ( p1_board[y][x] != '_') {
             return HIT;
         }
         else {
@@ -134,17 +134,15 @@ int Server::process_shot(unsigned int player) {
     {
         cereal::JSONInputArchive arc(pfile);
         arc(x,y);
+        remove("player_1.shot.json");
 
-        int opponent = 1;
-        if (player == 1){
-            opponent = 2;
-        }
-        int result = evaluate_shot(opponent,x,y);
+        int result = evaluate_shot(player,x,y);
         ofstream ofile;
         ofile.open("player_"+std::to_string(player)+".result.json");
-        cereal::JSONOutputArchive oarc(ofile);
-        oarc(CEREAL_NVP(result));
-        //oarc(cereal::make_nvp("result", result));
+        {
+            cereal::JSONOutputArchive oarc(ofile);
+            oarc(CEREAL_NVP(result));
+        }
 
         pfile.close();
         ofile.close();
