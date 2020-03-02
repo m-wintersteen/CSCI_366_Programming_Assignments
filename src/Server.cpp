@@ -124,35 +124,34 @@ int Server::process_shot(unsigned int player) {
         throw ServerException("ERROR: Player number too high in Process Shot");
     }
     ifstream pfile;
-    if ( player == 1 ){
-        pfile.open("player_1.shot.json");
 
-    }
-    else {
-        pfile.open("player_2.shot.json");
-    }
+    pfile.open("player_"+std::to_string(player)+".shot.json");
 
+    int x = 0;
+    int y = 0;
     if (pfile.is_open())
     {
+        cereal::JSONInputArchive arc(pfile);
+        arc(x,y);
 
-        string line;
-        int shot [2] = {};
-        while ( getline (pfile,line) )
-        {
-            std::regex r("(\\d).*(\\d)"); // entire match will be 2 numbers
-
-            std::smatch m;
-            std::regex_search(line, m, r);
-
-            shot[0] = std::stoi(m.str(1));
-            shot[1] = std::stoi(m.str(2));
-            for(int i = 0; i<2; i++){
-                std::cout << shot[i];
-            }
+        int result = evaluate_shot(player,x,y);
+        ofstream ofile;
+        ofile.open("player_"+std::to_string(player)+".result.json");
+        cereal::JSONOutputArchive oarc(ofile);
+        oarc(CEREAL_NVP(result));
+        string test;
+        fstream file;
+        file.open("player_1.result.json"); //text file i.e.(rj.txt)
+        do{
+            file>>test;
+            cout<< test<<endl;
         }
-        pfile.close();
-    }
+        while(!file.eof());
 
+
+        pfile.close();
+        ofile.close();
+    }
     else cout << "Unable to open file";
 
     return NO_SHOT_FILE;
