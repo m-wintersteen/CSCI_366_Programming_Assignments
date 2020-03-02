@@ -57,16 +57,17 @@ void Server::initialize(unsigned int board_size,
     int line = 0;
     while ( getline (infilep1,line1) &&  getline (infilep2,line2))
     {
-        p1_board[line][0] = (line1.at(0));
-        p1_board[line][1] = (line1.at(1));
-
+        for(int i = 0; i < board_size; i++){
+            p1_board[line][i] = (line1.at(i));
+        }
         // Validate board size
         if ( line1.length() != board_size ) {
             board_size_flag = false;
         }
 
-        p2_board[line][0] = (line2.at(0));
-        p2_board[line][1] = (line2.at(1));
+        for(int i = 0; i < board_size; i++){
+            p2_board[line][i] = (line2.at(i));
+        }
 
         if ( line2.length() != board_size ) {
             board_size_flag = false;
@@ -96,7 +97,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
     }
 
     if ( player == 1 ){
-        if ( p1_board[(BOARD_SIZE-1)-y][x] == 'D' || p1_board[(BOARD_SIZE-1)-y][x] == 'C' ) {
+        if ( p2_board[x][y] != '_' ) {
             return HIT;
         }
         else {
@@ -105,7 +106,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
 
     }
     else {
-        if ( p2_board[(BOARD_SIZE-1)-y][x] == 'D' || p2_board[(BOARD_SIZE-1)-y][x] == 'C' ) {
+        if ( p1_board[x][y] != '_') {
             return HIT;
         }
         else {
@@ -134,20 +135,16 @@ int Server::process_shot(unsigned int player) {
         cereal::JSONInputArchive arc(pfile);
         arc(x,y);
 
-        int result = evaluate_shot(player,x,y);
+        int opponent = 1;
+        if (player == 1){
+            opponent = 2;
+        }
+        int result = evaluate_shot(opponent,x,y);
         ofstream ofile;
         ofile.open("player_"+std::to_string(player)+".result.json");
         cereal::JSONOutputArchive oarc(ofile);
         oarc(CEREAL_NVP(result));
-        string test;
-        fstream file;
-        file.open("player_1.result.json"); //text file i.e.(rj.txt)
-        do{
-            file>>test;
-            cout<< test<<endl;
-        }
-        while(!file.eof());
-
+        //oarc(cereal::make_nvp("result", result));
 
         pfile.close();
         ofile.close();

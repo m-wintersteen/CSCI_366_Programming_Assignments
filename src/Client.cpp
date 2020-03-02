@@ -22,6 +22,8 @@ Client::~Client() {
 
 
 void Client::initialize(unsigned int player, unsigned int board_size){
+    this->player = player;
+    this->board_size = board_size;
 }
 
 
