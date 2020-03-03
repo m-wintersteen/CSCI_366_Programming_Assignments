@@ -134,7 +134,10 @@ int Server::process_shot(unsigned int player) {
     {
         cereal::JSONInputArchive arc(pfile);
         arc(x,y);
-        remove("player_1.shot.json");
+        string file = "player_"+std::to_string(player)+".shot.json";
+        const char* removeFile = file.c_str();
+
+        remove(removeFile);
 
         int result = evaluate_shot(player,x,y);
         ofstream ofile;
