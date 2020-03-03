@@ -149,8 +149,10 @@ int Server::process_shot(unsigned int player) {
 
         pfile.close();
         ofile.close();
-    }
-    else cout << "Unable to open file";
 
-    return NO_SHOT_FILE;
+        return SHOT_FILE_PROCESSED;
+    }
+    else{
+        return NO_SHOT_FILE;
+    }
 }
