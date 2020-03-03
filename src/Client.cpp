@@ -22,6 +22,12 @@ Client::~Client() {
 
 
 void Client::initialize(unsigned int player, unsigned int board_size){
+    if (player < 1) {
+        throw ClientWrongPlayerNumberException();
+    }
+    if ( player > MAX_PLAYERS ) {
+        throw ClientWrongPlayerNumberException();
+    }
     //Setting variables
     this->player = player;
     this->board_size = board_size;
@@ -36,6 +42,8 @@ void Client::initialize(unsigned int player, unsigned int board_size){
         oarc(CEREAL_NVP(board));
     }
     actionBoardFile.close();
+
+    this->initialized = true;
 }
 
 
@@ -126,4 +134,42 @@ void Client::update_action_board(int result, unsigned int x, unsigned int y) {
 
 
 string Client::render_action_board(){
+    vector<vector<int> > board(board_size, vector<int>(board_size));
+    string file = "player_" + std::to_string(player) + ".action_board.json";
+    ifstream boardFile;
+
+    boardFile.open(file);
+    {
+        cereal::JSONInputArchive iarc(boardFile);
+        iarc(CEREAL_NVP(board));
+    }
+    boardFile.close();
+
+    string output;
+
+    for(int i = 0; i < board_size; i++){
+        if(i == 0){
+            output += "  ";
+            for(int k = 0; k < board_size; k++){
+                output += std::to_string(k)+" ";
+            }
+            output += "\n";
+        }
+        output += std::to_string(i)+" ";
+        for(int j = 0; j < board_size; j++){
+            if (board[i][j] == HIT){
+                output += "X ";
+            }
+            else if(board[i][j] == MISS){
+                output += "- ";
+            }
+            else{
+                output += "| ";
+            }
+
+        }
+        output += "\n";
+    }
+
+    return output;
 }
