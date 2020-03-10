@@ -21,10 +21,6 @@
 #include <string>
 #include <regex>
 
-
-
-char p1_board[BOARD_SIZE][BOARD_SIZE];
-char p2_board[BOARD_SIZE][BOARD_SIZE];
 /**
  * Calculate the length of a file (helper function)
  *
@@ -32,53 +28,30 @@ char p2_board[BOARD_SIZE][BOARD_SIZE];
  * @return length of the file in bytes
  */
 int get_file_length(ifstream *file){
+    std::streampos fsize = 0;
+
+    file->seekg( 0, std::ios::end );
+    fsize = file->tellg();
+    file->close();
+
+    return fsize;
 }
 
 
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board){
+    this->board_size = board_size;
     // Check if files exist
     if ( !std::__fs::filesystem::exists(p1_setup_board) or !std::__fs::filesystem::exists(p2_setup_board) ) {
         throw ServerException("ERROR: Board does not exist");
     }
 
-    // Create var
-    ifstream infilep1,infilep2;
-    bool board_size_flag = true;
-    this->board_size = board_size;
+    // Check board size
+    this->p1_setup_board.open(p1_setup_board);
+    int expected_size = (board_size+1)*board_size;
 
-    // Open files
-    infilep1.open(p1_setup_board);
-    infilep2.open(p2_setup_board);
-
-    string line1;
-    string line2;
-    int line = 0;
-    while ( getline (infilep1,line1) &&  getline (infilep2,line2))
-    {
-        for(int i = 0; i < board_size; i++){
-            p1_board[line][i] = line1.at(i);
-        }
-        // Validate board size
-        if ( line1.length() != board_size ) {
-            board_size_flag = false;
-        }
-
-        for(int i = 0; i < board_size; i++){
-            p2_board[line][i] = line2.at(i);
-        }
-
-        if ( line2.length() != board_size ) {
-            board_size_flag = false;
-        }
-        line++;
-    }
-    infilep1.close();
-    infilep2.close();
-
-    //Throw error if bad board size
-    if (!board_size_flag) {
+    if (get_file_length(&this->p1_setup_board) != expected_size){
         throw ServerException("ERROR: Wrong Board Size");
     }
 }
@@ -96,24 +69,35 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
         return OUT_OF_BOUNDS;
     }
 
-    if ( player == 1 ){
-        if ( p2_board[y][x] != '_' ) {
-            return HIT;
-        }
-        else {
-            return MISS;
-        }
-
+    // Open file
+    ifstream file;
+    if(player == 1){
+        file.open("player_2.setup_board.txt");
     }
-    else {
-        if ( p1_board[y][x] != '_') {
-            return HIT;
-        }
-        else {
-            return MISS;
-        }
+    else{
+        file.open("player_1.setup_board.txt");
     }
 
+    string line1;
+    int line = 0;
+
+    while ( getline (file,line1))
+    {
+        for(int i = 0; i < board_size; i++){
+            if(line == y and i == x) {
+                if ( line1.at(i) != '_' ) {
+                    file.close();
+                    return HIT;
+                }
+                else {
+                    file.close();
+                    return MISS;
+                }
+            }
+        }
+
+        line++;
+    }
 }
 
 
