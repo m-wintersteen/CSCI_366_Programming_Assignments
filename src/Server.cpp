@@ -42,16 +42,14 @@ void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
                         string p2_setup_board){
     this->board_size = board_size;
-    // Check if files exist
-    if ( !std::__fs::filesystem::exists(p1_setup_board) or !std::__fs::filesystem::exists(p2_setup_board) ) {
-        throw ServerException("ERROR: Board does not exist");
-    }
 
     // Check board size
     this->p1_setup_board.open(p1_setup_board);
+    this->p2_setup_board.open(p2_setup_board);
+
     int expected_size = (board_size+1)*board_size;
 
-    if (get_file_length(&this->p1_setup_board) != expected_size){
+    if (get_file_length(&this->p1_setup_board) != expected_size or get_file_length(&this->p2_setup_board) != expected_size){
         throw ServerException("ERROR: Wrong Board Size");
     }
 }
@@ -64,6 +62,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
     if ( player > MAX_PLAYERS ) {
         throw ServerException("ERROR: Player number too high in Evaluate Shot");
     }
+
     // Check bounds
     if ( x >= BOARD_SIZE or y >= BOARD_SIZE ) {
         return OUT_OF_BOUNDS;
